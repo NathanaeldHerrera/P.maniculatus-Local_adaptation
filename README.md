@@ -56,4 +56,4 @@ featureCounts -p -O -F GTF -a $PMAN_GTF -o $LUNG_OUT *_Halign_sort.bam 2> featur
 ```
 
 ## RNA-Seq gene expression analyses in R
-See R scripts...
+See R scripts [pman_rnaseq_right_ventricle.R]() and [pman_rnaseq_lung.R]()
