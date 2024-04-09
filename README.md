@@ -1,6 +1,6 @@
 # P. maniculatus RNA-Seq Pipeline. 
 
-This repository is for data processing and analysis related to Bautista et al. (in prep), "Contributions of genotypic specialization and adaptive plasticity in the evolved resistance to hypoxic cold stress in high-altitude deer mice (in prep)".
+This repository is for data processing and analyses related to Bautista et al. (in prep), "Contributions of genotypic specialization and adaptive plasticity in the evolved resistance to hypoxic cold stress in high-altitude deer mice (in prep)".
 
 Below, users will find our workflow for processing and analyzing raw RNAseq fastq data for the right ventricle of the heart and lung tissue to generate count data. R scripts are provided for each tissue where users will find step-by-step workflow to perform gene expression analyses in R, including quality control of sequence data, identifying regulatory modules in WGCNA, testing for correlations of WGCNA modules with phenotypes, and testing for effects of treatment/population on module expression.
 
