@@ -18,7 +18,7 @@ Collect FastP results for QC statistics using [Multiqc](https://multiqc.info/)
 multiqc .
 ```
 Now we can map and sort. We are using [Hisat2](http://daehwankimlab.github.io/hisat2/) for mapping.
-We are using [assembly 2.1.3](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_003704035.1/)
+We are using the P. maniculatus [assembly 2.1.3](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_003704035.1/)
 ```
 for i in *R1.fastq.gz;
 do
