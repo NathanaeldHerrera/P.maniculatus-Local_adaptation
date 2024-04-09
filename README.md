@@ -1,1 +1,1 @@
-# Pman_RNA-Seq
+# Pman_heart&lung_rnaseq
