@@ -10,11 +10,9 @@ library(plotrix)
 library(edgeR) 
 library(DESeq2)
 library(WGCNA)
-library(rstatix)
-library(ggpubr)
-library(emmeans)
 library(lme4)
 library(plyr)
+library(ggsignif)
 #==============================================================================
 ############ Read in raw count data #####################################
 run_date <- format(Sys.Date(), "%d%b%Y")
@@ -89,7 +87,6 @@ y <- estimateGLMTagwiseDisp(y, design)
 
 #==============================================================================
 # Generate MDS plot
-
 pch <- c(0,1,2,16) #pch <- c(0,1,2,15,16)
 colors<- (c("dark green","light green","dark blue","light blue"))
 
@@ -100,7 +97,8 @@ pdf(file=paste("./results/lung/Rplot_MDS_n43_",run_date,".pdf",sep=""),width=8,h
 plotMDS(y,col=colors[group],pch=12,labels=colnames(y)) #exploration plots
 legend("topright",legend=levels(group),pch=pch,col=colors,ncol=2,cex=0.8)
 dev.off()
-
+#==============================================================================
+# CPM normalize the data
 lung.norm <- cpm(y,log=TRUE,prior.count=2,normalized.lib.sizes=TRUE) #cpm normalized and log transformed expression dataset
 lung.norm1 <- lung.norm
 #transpose expression data for further analysis
@@ -166,8 +164,8 @@ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 dev.off()
 
 #==============================================================================
-# Construct a gene network, using a soft threshold power of 12, based on inflection point in plot.
-Net = blockwiseModules(Expr, power =12, maxBlockSize = 18000, # set power according to threshold power plot
+# Construct a gene network, using a soft threshold power of 8, based on inflection point in plot.
+Net = blockwiseModules(Expr, power =8, maxBlockSize = 18000, # set power according to threshold power plot
                        TOMType = "signed", networkType = "signed",
                        minModuleSize = 30,
                        reassignThreshold = 0, mergeCutHeight = 0.25,
@@ -190,7 +188,7 @@ write.csv(table(moduleLabels), file=paste("results/lung/signed/lung_modules_sign
 
 #==============================================================================
 ## Top hub genes from each module
-hub_genes <-chooseTopHubInEachModule(Expr, moduleLabels,power=12)
+hub_genes <-chooseTopHubInEachModule(Expr, moduleLabels,power=8)
 write.csv(hub_genes, file=paste("results/lung/signed/lung_signed_hubGenes_",run_date,".csv",sep=""))
 
 # Convert labels to colors for plotting
@@ -306,169 +304,72 @@ labeledHeatmap(Matrix = moduleTraitCor,
                main = paste("Module-trait relationships"))
 
 #==============================================================================
-# ANOVAs on population and treatment effects
-# code from Plachetzki et al 2014 (https://bitbucket.org/plachetzki/plachetzki-et-al.-sicb-2014/src/master/)
-
-ME = MEs
-ME <- removeGreyME(MEs, greyMEName = paste(moduleColor.getMEprefix(), "0", sep=""))
-ME_t <- ME
-ME_t$code <- row.names(ME_t)
-ME_info <- merge(ME_t,id,by="code")
-#ME_anova <- ME_info %>% select(-one_of('code','population','treatment','sex','sao2','hct'))
-
-mods <- colnames(ME)
-modNames = names(ME_info)
-
-anovas<-list()
-anovasP<-list()
-for (i in 1:ncol(ME_info)){
-  rME<-rank(ME_info[,i])
-  anova<-summary(aov(rME ~ ME_info$population*ME_info$treatment))
-  anovasP[[i]]<-c(anova[[1]][["Pr(>F)"]][1:3]); names(anovasP)[i]<-modNames[i]
-  anovas[i]<-anova; names(anovas)[i]<-modNames[i]
-}
-FDR_pvals<-matrix(round(p.adjust(unlist(anovasP),method="fdr"),4),43,3,byrow=T,dimnames=list(names(ME_info),c("population","treatment", "population*treatment")) )            
-
-anova<-summary(aov(ME_info$ME36 ~ ME_info$population*ME_info$treatment))
-
-write.table(FDR_pvals,file=paste("results/lung/signed/table_lung_wgcna_signed_anova_results_",run_date,".txt",sep=""),sep="\t",quote=FALSE,row.names=TRUE,col.names=TRUE)
-#############
-# Box plots for module expression of population differences and treatment differences
-# Plot for right here
-ggplot(ME_info, aes(x=population, y=ME12)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Lowlander", "Highlander")), 
-              map_signif_level=TRUE,)
-
-# Save as a pdf 
-pdf(file=paste("results/lung/signed/module_expression_boxplots/population/eigengene_expr_ME19_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME_info, aes(x=population, y=ME19)) + 
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) + 
-  geom_signif(comparisons = list(c("Lowlander", "Highlander")), 
-              map_signif_level=TRUE)
-dev.off()
-
-# By treatment 
-ggplot(ME_info, aes(x=treatment, y=ME19)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Control", "Acclimated")), 
-              map_signif_level=TRUE)
-# Save as a pdf 
-pdf(file=paste("results/lung/signed/module_expression_boxplots/treatment/eigengene_expr_ME19_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME_info, aes(x=treatment, y=ME19)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Control", "Acclimated")), 
-              map_signif_level=TRUE)
-dev.off()
-
-#==============================================================================
 # Line plots for treatment vs population effects 
-ME24 <- ME_info[ , c("code","population","treatment","ME24")]
+ME3 <- ME_info[ , c("code","population","treatment","ME3")]
 
-ME24 <- ddply(ME24, c("population", "treatment"), summarise,
-              N    = sum(!is.na(ME24)),
-              mean = mean(ME24, na.rm=TRUE),
-              sd   = sd(ME24, na.rm=TRUE),
-              se   = sd / sqrt(N)
+L03 <- ddply(ME3, c("population", "treatment"), summarise,
+             N    = sum(!is.na(ME3)),
+             mean = mean(ME3, na.rm=TRUE),
+             sd   = sd(ME3, na.rm=TRUE),
+             se   = sd / sqrt(N)
 )
 
 # The errorbars overlapped, so use position_dodge to move them horizontally
 pd <- position_dodge(0.1) # move them .05 to the left and right
 
 # A much nicer plot
-ggplot(ME24, aes(x=treatment, y=mean, colour=population, group=population)) + 
+ggplot(L03, aes(x=treatment, y=mean, colour=population, group=population)) + 
   scale_x_discrete(limits=c("Control","Acclimated")) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), colour="black", width=.1, position=pd) +
   geom_line(position=pd) +
-  geom_point(aes(shape = population), position=pd, fill="white", size=4) +
-  xlab("Treatment") +
-  ylab("mean expression") +
-  scale_color_manual(values=c("black","grey")) +
-  ggtitle("Module Expression for the right Ventricle") +
+  geom_point(aes(shape = population), position=pd, fill="white", size=3) +
+  scale_shape_manual(values = c(1, 16)) +
+  xlab("L03") +
+  ylab("Module Expression") +
+  scale_color_manual(values=c("black","black")) +
   expand_limits(y=0) +                        # Expand y range
   theme_bw() +
+#  theme(legend.position="none")             # for supplement we can exclude 
   theme(legend.justification=c(1,1),
         legend.position=c(1,1))               # Position legend in bottom right
 # PDF 
-pdf(file=paste("results/lung/signed/module_expression_line_plots/eigengene_expr_linePlot_ME25_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME37, aes(x=treatment, y=mean, colour=population, group=population)) + 
+pdf(file=paste("results/lung/signed/plots/eigengene_expr_linePlot_L03_",run_date,".pdf",sep=""),h=3.6,w=4.25) # h=3.6,w=4.25 for main fig; h=2.1,w=2.75 supplement
+ggplot(L03, aes(x=treatment, y=mean, colour=population, group=population)) + 
+  scale_x_discrete(limits=c("Control","Acclimated")) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), colour="black", width=.1, position=pd) +
   geom_line(position=pd) +
-  geom_point(aes(shape = population), position=pd, fill="white", size=4) +
-  xlab("Treatment") +
-  ylab("mean expression") +
-  scale_color_manual(values=c("black","grey")) +
-  ggtitle("black Module Expression for the right Ventricle") +
+  geom_point(aes(shape = population), position=pd, fill="white", size=3) +
+  scale_shape_manual(values = c(1, 16)) +
+  xlab("L03") +
+  ylab("Module Expression") +
+  scale_color_manual(values=c("black","black")) +
   expand_limits(y=0) +                        # Expand y range
   theme_bw() +
+#  theme(legend.position="none")             # for supplement we can exclude 
   theme(legend.justification=c(1,1),
         legend.position=c(1,1))               # Position legend in bottom right
 dev.off()
-
-#==============================================================================
 # Output scatterplots of module expression with phenotypes.
 # We can view a plot here and make sure it looks like what we want for the output plots below.
-ggplot(ME_info, aes(x=ME5, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "right",panel.grid = element_blank())
+ggplot(ME_info, aes(x=ME3, y=sao2, shape=population, color=treatment)) + scale_shape_manual(values = c(17, 16)) + 
+  geom_point(size=3) + geom_smooth(method = lm, aes(group=1))  + theme_bw() +
+  scale_color_manual(values=c("black","grey")) + 
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 90, hjust = .5, vjust = .5, face = "plain"), axis.text.y = element_text(color = "black", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"))
 
 #PDF plot The first one with a legend
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME5_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME5, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "right",panel.grid = element_blank())
-dev.off()
 
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME6_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME6, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
+pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_lung_standarized_L03_",run_date,".pdf",sep=""),h=11, w=8.5)
+ggplot(ME_info, aes(x=ME3, y=rv_standarized, shape=population, color=treatment)) + scale_shape_manual(values = c(17, 16)) + 
+  geom_point(size=3) + geom_smooth(method = lm, aes(group=1))  + theme_bw() +
+  scale_color_manual(values=c("black","grey")) + 
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 90, hjust = .5, vjust = .5, face = "plain"), axis.text.y = element_text(color = "black", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"))
 dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME9_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME9, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME12_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME12, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME19_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME19, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME24_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME24, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME25_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME25, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME27_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME27, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME30_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME30, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME31_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME31, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME36_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME36, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/lung/signed/module_expression_scatter_plots/phenotype_SaO2_ME37_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME37, y=sao2, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
 #==============================================================================
 # Test for gene enrichment from WGCNA modules that had significant treatment effect in ANOVA.
 all_genes <- geneInfo["Gene"]
 
 # Run GO enrichment using gProfiler package
-for (num in c("5","6","9","12","19","24","27","30","31", "36","37")){
+for (num in c("39")){
   genes <- geneInfo[geneInfo$moduleLabel==num,]["Gene"]
   genes_GO <- gost(as.vector(genes$Gene), organism = "pmbairdii",
                    ordered_query = F, significant = T, exclude_iea = F,
@@ -477,7 +378,7 @@ for (num in c("5","6","9","12","19","24","27","30","31", "36","37")){
                    domain_scope = "annotated", numeric_ns = "",sources=c("GO","KEGG","REAC","TF","HP"))
   write.csv(apply(genes_GO$result,2,as.character),file=paste("results/lung/signed/GO_analysis/",num,"_module_GO_",run_date,".csv",sep=""))
 }
-# module 25 has no significant GO terms
+# module 27, 34, and 37 have no significant GO terms
 
 #==============================================================================
 # Is there a difference in Male vs Female lung_standardized weight?
