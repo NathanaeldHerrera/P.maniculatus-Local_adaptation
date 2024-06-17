@@ -27,7 +27,7 @@ counts$Geneid <- NULL #remove the gene id column, since you only want data colum
 #==============================================================================
 ## filter samples and low reads for PCA plot
 # import metadata
-id <- read.csv("./data_files/rv/Pman_rnaseq_RV_metadata_2.csv",header=T)
+id <- read.csv("./data_files/rv/Pman_rnaseq_RV_metadata.csv",header=T)
 head(id)
 head(counts)
 dim(id)
@@ -49,7 +49,7 @@ dim(counts)
 #colnames(counts) == id$code # should see all "TRUE"s
 
 #==============================================================================
-#filter data
+#filter data for low gene counts
 counts$mean = rowMeans(counts) #rowMeans takes means of each row
 keep_counts = subset(counts, mean >= 20) #filter out genes that have <20 reads on average across individuals
 #dim(keep_counts)
@@ -77,7 +77,6 @@ colnames(design) <- c("(Intercept)","population","treatment","pop*treat") # chan
 
 # do normalization 
 y <- DGEList(counts=keep_counts, group=treatment) # make a DGE list
-dim(y)
 y <- calcNormFactors(y) # normalize
 y <- estimateGLMCommonDisp(y, design, verbose=TRUE)
 y <- estimateGLMTrendedDisp(y, design)
@@ -97,6 +96,7 @@ legend("topright",legend=levels(group),pch=pch,col=colors,ncol=2,cex=0.8)
 dev.off()
 
 #==============================================================================
+# CPM normalize the data
 rv.norm <- cpm(y,log=TRUE,prior.count=2,normalized.lib.sizes=TRUE) #cpm normalized and log transformed expression dataset
 rv.norm1 <- rv.norm
 #transpose expression data for further analysis
@@ -304,72 +304,13 @@ labeledHeatmap(Matrix = moduleTraitCor,
                main = paste("Module-trait relationships"))
 
 #==============================================================================
-# ANOVAs on population and treatment effect
-# code from Plachetzki et al 2014 (https://bitbucket.org/plachetzki/plachetzki-et-al.-sicb-2014/src/master/)
-ME = MEs
-ME <- removeGreyME(MEs, greyMEName = paste(moduleColor.getMEprefix(), "0", sep=""))
-ME_t <- ME
-ME_t$code <- row.names(ME_t)
-ME_info <- merge(ME_t,id,by="code")
-#ME_anova <- ME_info %>% select(-one_of('code','population','treatment','sex','sao2','hct'))
+# Module expression plots
+ME37 <- ME_info[ , c("code","population","treatment","ME37")]
 
-mods <- colnames(ME)
-modNames = names(ME_info)
-
-anovas<-list()
-anovasP<-list()
-for (i in 1:ncol(ME_info)){
-  rME<-rank(ME_info[,i])
-  anova<-summary(aov(rME ~ ME_info$population*ME_info$treatment))
-  anovasP[[i]]<-c(anova[[1]][["Pr(>F)"]][1:3]); names(anovasP)[i]<-modNames[i]
-  anovas[i]<-anova; names(anovas)[i]<-modNames[i]
-}
-FDR_pvals<-matrix(round(p.adjust(unlist(anovasP),method="fdr"),4),42,3,byrow=T,dimnames=list(names(ME_info),c("population","treatment", "population*treatment")) )            
-
-anova<-summary(aov(ME_info$ME36 ~ ME_info$population*ME_info$treatment))
-
-write.table(FDR_pvals,file=paste("results/rv/signed/table_rv_wgcna_signed_anova_results_",run_date,".txt",sep=""),sep="\t",quote=FALSE,row.names=TRUE,col.names=TRUE)
-
-#==============================================================================
-# Box plots for module expression of population differences and treatment differences
-# Plot for right here
-ggplot(ME_info, aes(x=population, y=ME3)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Lowlander", "Highlander")), 
-              map_signif_level=TRUE,)
-# Save as a pdf 
-pdf(file=paste("results/rv/signed/module_expression_boxplots/population/eigengene_expr_ME10_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME_info, aes(x=population, y=ME10)) + 
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) + 
-  geom_signif(comparisons = list(c("Lowlander", "Highlander")), 
-              map_signif_level=TRUE)
-dev.off()
-
-# By treatment 
-ggplot(ME_info, aes(x=treatment, y=ME37)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Control", "Acclimated")), 
-              map_signif_level=TRUE)
-# Save as a pdf 
-pdf(file=paste("results/rv/signed/module_expression_boxplots/treatment/eigengene_expr_ME25_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME_info, aes(x=treatment, y=ME25)) +
-  geom_boxplot() + geom_dotplot(binaxis='y', stackdir='center',
-                                position=position_dodge(1), dotsize = 0.5) +
-  geom_signif(comparisons = list(c("Control", "Acclimated")), 
-              map_signif_level=TRUE)
-dev.off()
-
-#==============================================================================
-# Line plots for treatment vs population effects 
-ME4 <- ME_info[ , c("code","population","treatment","ME4")]
-
-ME4 <- ddply(ME4, c("population", "treatment"), summarise,
-              N    = sum(!is.na(ME4)),
-              mean = mean(ME4, na.rm=TRUE),
-              sd   = sd(ME4, na.rm=TRUE),
+RV37 <- ddply(ME37, c("population", "treatment"), summarise,
+              N    = sum(!is.na(ME37)),
+              mean = mean(ME37, na.rm=TRUE),
+              sd   = sd(ME37, na.rm=TRUE),
               se   = sd / sqrt(N)
 )
 
@@ -377,86 +318,54 @@ ME4 <- ddply(ME4, c("population", "treatment"), summarise,
 pd <- position_dodge(0.1) # move them .05 to the left and right
 
 # A much nicer plot
-ggplot(ME4, aes(x=treatment, y=mean, colour=population, group=population)) + 
+ggplot(RV37, aes(x=treatment, y=mean, colour=population, group=population)) + 
   scale_x_discrete(limits=c("Control","Acclimated")) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), colour="black", width=.1, position=pd) +
   geom_line(position=pd) +
-  geom_point(aes(shape = population), position=pd, fill="white", size=4) +
-  xlab("Treatment") +
-  ylab("mean expression") +
-  scale_color_manual(values=c("black","grey")) +
-  ggtitle("Module Expression for the right Ventricle") +
+  geom_point(aes(shape = population), position=pd, fill="white", size=3) +
+  scale_shape_manual(values = c(1, 16)) +
+  xlab("RV37") +
+  ylab("Module Expression") +
+  scale_color_manual(values=c("black","black")) +
   expand_limits(y=0) +                        # Expand y range
   theme_bw() +
+  #theme(legend.position="none")             # for supplement I exclude the legend
   theme(legend.justification=c(1,1),
-        legend.position=c(1,1))               # Position legend in bottom right
+        legend.position=c(1,1))              # Position legend in bottom right
 
-
-pdf(file=paste("results/rv/signed/module_expression_line_plots/eigengene_expr_linePlot_ME10_",run_date,".pdf",sep=""),h=9,w=9)
-ggplot(ME10, aes(x=treatment, y=mean, colour=population, group=population)) + 
+# Save to pdf
+pdf(file=paste("results/rv/signed/figure_revisions/eigengene_expr_linePlot_RV37_",run_date,".pdf",sep=""),h=3.6,w=4.25) # h=3.6,w=4.25 for main fig h=2.1,w=2.75 supplement
+ggplot(RV37, aes(x=treatment, y=mean, colour=population, group=population)) + 
+  scale_x_discrete(limits=c("Control","Acclimated")) +
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), colour="black", width=.1, position=pd) +
   geom_line(position=pd) +
-  geom_point(aes(shape = population), position=pd, fill="white", size=4) +
-  xlab("Treatment") +
-  ylab("mean expression") +
-  scale_color_manual(values=c("black","grey")) +
-  ggtitle("ME10 Module Expression Right ventricle") +
+  geom_point(aes(shape = population), position=pd, fill="white", size=3) +
+  scale_shape_manual(values = c(1, 16)) +
+  xlab("RV37") +
+  ylab("Module Expression") +
+  scale_color_manual(values=c("black","black")) +
   expand_limits(y=0) +                        # Expand y range
   theme_bw() +
+  #theme(legend.position="none")             
   theme(legend.justification=c(1,1),
         legend.position=c(1,1))               # Position legend in bottom right
 dev.off()
-
 #==============================================================================
 # Output scatterplots of module expression with phenotypes.
 # We can view a plot here and make sure it looks like what we want for the output plots below.
-ggplot(ME_info, aes(x=ME37, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "right",panel.grid = element_blank())
+ggplot(ME_info, aes(x=ME3, y=rv_standarized, shape=population, color=treatment)) + scale_shape_manual(values = c(17, 16)) + 
+  geom_point(size=3) + geom_smooth(method = lm, aes(group=1))  + theme_bw() +
+  scale_color_manual(values=c("black","grey")) + 
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 90, hjust = .5, vjust = .5, face = "plain"), axis.text.y = element_text(color = "black", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"))
 
 #PDF plot The first one with a legend
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME37_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME37, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "right",panel.grid = element_blank())
-dev.off()
 
 pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME33_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME33, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
+ggplot(ME_info, aes(x=ME3, y=rv_standarized, shape=population, color=treatment)) + scale_shape_manual(values = c(17, 16)) + 
+  geom_point(size=3) + geom_smooth(method = lm, aes(group=1))  + theme_bw() +
+  scale_color_manual(values=c("black","grey")) + 
+  theme(axis.text.x = element_text(color = "black", size = 10, angle = 90, hjust = .5, vjust = .5, face = "plain"), axis.text.y = element_text(color = "black", size = 10, angle = 0, hjust = 1, vjust = 0, face = "plain"))
 dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME3_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME3, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME5_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME5, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME25_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME25, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME32_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME32, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME8_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME8, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME4_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME4, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME15_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME15, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME7_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME7, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
-pdf(file=paste("results/rv/signed/module_expression_scatter_plots/phenotype_rv_standarized_ME10_",run_date,".pdf",sep=""),h=11, w=8.5)
-ggplot(ME_info, aes(x=ME10, y=rv_standarized, shape=treatment, color=population)) + geom_point(size=5) + geom_smooth(method = lm, aes(group=1))  + theme_bw() + scale_color_manual(values=c("black","grey")) + theme(legend.position = "none",panel.grid = element_blank())
-dev.off()
-
 #==============================================================================
 # GO enrichment WGCNA modules
 # output gene info
@@ -516,3 +425,12 @@ stat.test2 <- id %>%
   t_test(rv_standardized_bm ~ sex, var.equal = TRUE) %>%
   add_significance()
 stat.test2
+
+#==============================================================================
+# Calculate kME for each gene:
+datKME = signedKME(Expr, MEs, outputColumnName = "kME")
+write.csv(datKME, file=paste("results/rv/signed/rv_module_KME_",run_date,".csv",sep=""))
+RV03_kME <- read.csv("./results/rv/signed/kME_RV03.csv",header=T) #load the counts.text file from featureCounts
+
+#Find the quartiles (25th, 50th, and 75th percentiles) of the vector
+quantile(RV03_kME$kME3, probs = c(.025, .5, .99))
