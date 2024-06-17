@@ -6,14 +6,9 @@ library(ggbiplot)
 library(qwraps2)
 library(report)
 #==============================================================================
-
-# We start by importing our technical sequencing metrics data for our RNAseq samples. 
 # We will then run principal components analysis and generate a 95% data ellipse to identify 
 # technical outliers. The default stat_ellipse() is intended to compute a bivariate confidence 
 # interval assuming a Student-t distribution. There is more information on this process 
-# here: https://stackoverflow.com/questions/16659749/getting-the-ellipse-function-to-match-the-dataellipse-function-in-r. 
-
-
 # read_in_metrics ########################################################
 run_date <- format(Sys.Date(), "%d%b%Y")
 
