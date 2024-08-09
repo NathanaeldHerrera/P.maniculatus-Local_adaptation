@@ -12,7 +12,7 @@ Contact: Nathanael Herrera - ndh04c(at)gmail.com and Naim M. Bautista - naimbaut
 
 Sections
 
-1. [Processing raw RNAseq fastq read data](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/raw_read_processing_mapping_featureCounts)
+1. [Processing raw RNAseq fastq read data](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/raw_read_processing_mapping_featureCounts.md)
 2. [pman_rnaseq_QC](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC/pman_rnaseq_QC.md)
 3. [RNA-Seq_gene_expression_analysis](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/RNA-Seq_gene_expression_analysis/RNA-Seq_gene_expression_analysis.md)
 
