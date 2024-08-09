@@ -7,13 +7,12 @@ library(qwraps2)
 library(report)
 #==============================================================================
 # We will then run principal components analysis and generate a 95% data ellipse to identify 
-# technical outliers. The default stat_ellipse() is intended to compute a bivariate confidence 
-# interval assuming a Student-t distribution. There is more information on this process 
+# technical outliers. 
 # read_in_metrics ########################################################
 run_date <- format(Sys.Date(), "%d%b%Y")
 
-#metrics <- read.csv("./right_ventricle/rnaseq_Pman_RV_QCmetrics_112923.csv",header=TRUE,stringsAsFactors=FALSE)
-metrics <- read.csv("./lung/rnaseq_Pman_LUNG_QCmetrics_021324.csv",header=TRUE,stringsAsFactors=FALSE)
+#metrics <- read.csv("./right_ventricle/rnaseq_Pman_RV_QCmetrics.csv",header=TRUE,stringsAsFactors=FALSE)
+metrics <- read.csv("./lung/rnaseq_Pman_LUNG_QCmetrics.csv",header=TRUE,stringsAsFactors=FALSE)
 head(metrics)
 metrics$group_for_pca <- "samples"
 metrics.pca <- prcomp(metrics[,c(4:6,8:9)], center = TRUE,scale. = TRUE) #don't include perc dups or # reads 
@@ -34,11 +33,10 @@ metrics_mod <- metrics_mod[metrics_mod$sample_name!=c("CC1KNN"),]
 metrics_mod <- metrics_mod[metrics_mod$sample_name!=c("CC4MEX"),]
 
 set.seed(42)
-# define the markup language we are working in.
-# options(qwraps2_markup = "latex") is also supported.
 options(qwraps2_markup = "markdown")
 
-our_summary1 <-
+#LUNG_seq_summary <-
+RV_seq_summary <-
   list("Mean Quality Score" =
          list("min"       = ~ min(mean_quality_score),
               "max"       = ~ max(mean_quality_score),
@@ -69,8 +67,9 @@ our_summary1 <-
   )
 
 ### Overall
-whole <- summary_table(metrics_mod, our_summary1)
-whole
+#table <- summary_table(metrics_mod, LUNG_seq_summary)
+table <- summary_table(metrics_mod, RV_seq_summary)
+table
 
 # Run anova to check for batch effects
 lm_qs <- lm(mean_quality_score ~ group, data=metrics)
