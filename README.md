@@ -13,5 +13,5 @@ Contact:ndh04c (at) gmail.com
 Sections
 
 1. [Processing raw RNAseq fastq read data](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/raw_read_processing_mapping_featureCounts)
-
+2. [pman_rnaseq_QC](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC.R)
 
