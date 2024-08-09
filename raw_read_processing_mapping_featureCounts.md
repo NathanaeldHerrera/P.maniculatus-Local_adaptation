@@ -46,8 +46,9 @@ PMAN_GTF=/reference/GCF_003704035.1_HU_Pman_2.1.3_genomic.gtf
 RV_OUT=/right_ventricle/counts/Pman_readcounts_RV_CountMM.txt
 LUNG_OUT=/lung/counts/Pman_readcounts_LUNG_CountMM.txt
 
-# Right Ventricle
-featureCounts -p -O -F GTF -a $PMAN_GTF -o $RV_OUT *_Halign_sort.bam 2> featureCounts_RV_log.txt
 # Lung
 featureCounts -p -O -F GTF -a $PMAN_GTF -o $LUNG_OUT *_Halign_sort.bam 2> featureCounts_LUNG_log.txt
+
+# Right Ventricle
+featureCounts -p -O -F GTF -a $PMAN_GTF -o $RV_OUT *_Halign_sort.bam 2> featureCounts_RV_log.txt
 ```
