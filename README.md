@@ -15,8 +15,8 @@ In each section below, I describe the pipeline used (follow links below). Script
 Contact: Nathanael Herrera - ndh04c(at)gmail.com and Naim M. Bautista - naimbautista(at)unl.edu
 
 Sections
-1. [Physiological_data]()
+1. [Physiological data]()
 2. [Processing raw RNAseq fastq read data](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/raw_read_processing_mapping_featureCounts.md)
-3. [pman_rnaseq_QC](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC/pman_rnaseq_QC.md)
-4. [RNA-Seq_gene_expression_analysis](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/RNA-Seq_gene_expression_analysis/RNA-Seq_gene_expression_analysis.md)
+3. [RNA-seq QC metrics](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC/pman_rnaseq_QC.md)
+4. [RNA-Seq gene expression analysis](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/RNA-Seq_gene_expression_analysis/RNA-Seq_gene_expression_analysis.md)
 
