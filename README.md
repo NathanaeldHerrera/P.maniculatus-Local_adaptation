@@ -1,4 +1,4 @@
-# P. maniculatus RNA-Seq Pipeline. 
+# P. maniculatus RNA-Seq Pipeline and Phenotypic data. 
 
 This repository is for data processing and analyses related to Bautista et al. (in review), "Local adaptation, plasticity, and evolved resistance to hypoxic cold stress in high-altitude deer mice".
 
