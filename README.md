@@ -1,6 +1,6 @@
 # P. maniculatus RNA-Seq Pipeline. 
 
-This repository is for data processing and analyses related to Bautista et al. (in review), "Contributions of genotypic specialization and adaptive plasticity in the evolved resistance to hypoxic cold stress in high-altitude deer mice".
+This repository is for data processing and analyses related to Bautista et al. (in review), "Local adaptation, plasticity, and evolved resistance to hypoxic cold stress in high-altitude deer mice".
 
 ###
 Add physio info here
