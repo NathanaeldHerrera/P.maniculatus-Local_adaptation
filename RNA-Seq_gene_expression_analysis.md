@@ -1,1 +1,0 @@
-See R scripts: [pman_rnaseq_QC.r](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC.R), [pman_rnaseq_right_ventricle.R](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_right_ventricle.R) and [pman_rnaseq_lung.R](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_lung.R)
