@@ -11,4 +11,4 @@ For each tissue we have a table containing:
 alignment rate is generated during mapping by HiSat2 and assignment rate comes from featureCounts
 
 
-See R script:[pman_rnaseq_QC.R]([http://daehwankimlab.github.io/hisat2/](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC.R))
+See R script:[pman_rnaseq_QC.R]([[http://daehwankimlab.github.io/hisat2/](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC.R)](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC/pman_rnaseq_QC.R))
