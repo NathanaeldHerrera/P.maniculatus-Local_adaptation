@@ -14,6 +14,9 @@ multiqc .
 Now we can map and sort. We are using [Hisat2](http://daehwankimlab.github.io/hisat2/) for mapping.
 We are using the P. maniculatus [assembly 2.1.3](https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_003704035.1/)
 ```
+# Define reference:
+PMAN_REF=/reference/GCF_003704035.1_HU_Pman_2.1.3_genomic.fna
+
 for i in *R1.fastq.gz;
 do
         name1=$(echo $i | cut -d '_' -f 1);
@@ -39,9 +42,9 @@ done
 Finally, we generate count data using [featureCounts](https://subread.sourceforge.net/featureCounts.html). Each tissue (right ventricle and lung) is treated seperately.
 ```
 # Set some environmental variables:
-PMAN_GTF=/home/nh253642/peromyscus_rnaseq/reference/GCF_003704035.1_HU_Pman_2.1.3_genomic.gtf
-RV_OUT=/peromyscus_rnaseq/right_ventricle/counts/Pman_readcounts_RV_CountMM.txt
-LUNG_OUT=/peromyscus_rnaseq/lung/counts/Pman_readcounts_LUNG_CountMM.txt
+PMAN_GTF=/reference/GCF_003704035.1_HU_Pman_2.1.3_genomic.gtf
+RV_OUT=/right_ventricle/counts/Pman_readcounts_RV_CountMM.txt
+LUNG_OUT=/lung/counts/Pman_readcounts_LUNG_CountMM.txt
 
 # Right Ventricle
 featureCounts -p -O -F GTF -a $PMAN_GTF -o $RV_OUT *_Halign_sort.bam 2> featureCounts_RV_log.txt
