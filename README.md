@@ -6,7 +6,7 @@ This repository is for data processing and analyses related to Bautista et al. (
 Add physio info here
 ###
 
-Our transcripptomic analysis pipeline is similar to Schweizer et al., 2023. Gene regulatory changes underlie developmental plasticity in respiration and aerobic performance in highland deer mice. Molecular Ecology. 32:3483–3496 and have used some scripts with modification (see: https://github.com/renaschweizer/pman_diaphragm_rnaseq). 
+Our transcripptomic analysis pipeline is similar to Schweizer et al., 2023. [Gene regulatory changes underlie developmental plasticity in respiration and aerobic performance in highland deer mice.](https://pubmed.ncbi.nlm.nih.gov/37073620/) and have used some scripts with modification (see: https://github.com/renaschweizer/pman_diaphragm_rnaseq). 
 
 Here, our workflow for processing and analyzing raw RNA-Seq fastq data for the right ventricle of the heart and lung tissue to generate count data. R scripts are provided for each tissue where users will find step-by-step workflows to perform gene expression analyses in R, including quality control of sequence data, identifying regulatory modules in WGCNA, testing for correlations of WGCNA modules with phenotypes, and testing for effects of treatment/population on module expression.
 
