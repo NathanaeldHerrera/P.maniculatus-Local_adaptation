@@ -51,6 +51,3 @@ featureCounts -p -O -F GTF -a $PMAN_GTF -o $RV_OUT *_Halign_sort.bam 2> featureC
 # Lung
 featureCounts -p -O -F GTF -a $PMAN_GTF -o $LUNG_OUT *_Halign_sort.bam 2> featureCounts_LUNG_log.txt
 ```
-
-## RNA-Seq gene expression analyses in R
-See R scripts: [pman_rnaseq_QC.r](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC.R), [pman_rnaseq_right_ventricle.R](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_right_ventricle.R) and [pman_rnaseq_lung.R](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_lung.R)
