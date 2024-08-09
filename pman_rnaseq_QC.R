@@ -70,16 +70,3 @@ RV_seq_summary <-
 #table <- summary_table(metrics_mod, LUNG_seq_summary)
 table <- summary_table(metrics_mod, RV_seq_summary)
 table
-
-# Run anova to check for batch effects
-lm_qs <- lm(mean_quality_score ~ group, data=metrics)
-lm_q30 <- lm(perc_bases_above_q30 ~ group, data=metrics)
-lm_gc <- lm(perc_gc ~ group, data=metrics)
-lm_align <- lm(align_rate ~ group, data=metrics)
-lm_assign <- lm(assign_rate ~ group, data=metrics)
-
-report(anova(lm_qs))
-report(anova(lm_q30))
-report(anova(lm_gc))
-report(anova(lm_align))
-report(anova(lm_assign))
