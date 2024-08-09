@@ -8,11 +8,11 @@ Here, our workflow for processing and analyzing raw RNA-Seq fastq data for the r
 
 In each section below, I describe the pipeline used (follow links below). Scripts referenced in each section can be found inside the respective folders.
 
-Contact:ndh04c (at) gmail.com
+Contact: Nathanael Herrera ndh04c(at)gmail.com or Naim M. Bautista naimbautista(at)unl.edu
 
 Sections
 
 1. [Processing raw RNAseq fastq read data](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/raw_read_processing_mapping_featureCounts)
 2. [pman_rnaseq_QC](https://github.com/NathanaeldHerrera/Pman_rnaseq/blob/main/pman_rnaseq_QC/pman_rnaseq_QC.md)
-3. 3.[RNA-Seq_gene_expression_analysis](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/RNA-Seq_gene_expression_analysis/RNA-Seq_gene_expression_analysis.md)
+3. [RNA-Seq_gene_expression_analysis](https://github.com/NathanaeldHerrera/P.maniculatus-transcriptomics/blob/main/RNA-Seq_gene_expression_analysis/RNA-Seq_gene_expression_analysis.md)
 
