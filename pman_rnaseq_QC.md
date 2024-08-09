@@ -1,1 +1,0 @@
-## Generate QC report 
