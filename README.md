@@ -8,7 +8,7 @@ Here, our workflow for processing and analyzing raw RNA-Seq fastq data for the r
 
 In each section below, I describe the pipeline used (follow links below). Scripts referenced in each section can be found inside the respective folders.
 
-Contact: Nathanael Herrera ndh04c(at)gmail.com or Naim M. Bautista naimbautista(at)unl.edu
+Contact: Nathanael Herrera - ndh04c(at)gmail.com and Naim M. Bautista - naimbautista(at)unl.edu
 
 Sections
 
