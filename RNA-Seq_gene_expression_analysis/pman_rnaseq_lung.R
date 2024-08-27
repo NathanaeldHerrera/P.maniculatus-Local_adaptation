@@ -53,27 +53,25 @@ dim(counts)
 #colnames(counts) == id$code # should see all "TRUE"s
 
 ## Filter the data
-counts$mean = rowMeans(counts) #rowMeans takes means of each row
-keep_counts = subset(counts, mean >= 20) #filter out genes that have <20 reads on average across individuals
+#filter out genes that have <20 reads on average across individuals
+counts$mean = rowMeans(counts) 
+keep_counts = subset(counts, mean >= 20) 
 #dim(keep_counts)
 
 keep_counts$mean = NULL #clean up dataset
 dim(keep_counts)
 #==============================================================================
-# Next, we set up our GLM model and use edgeR to normalize across libraries. 
-
+# use edgeR to normalize across libraries. 
 id$code == colnames(keep_counts) # double check that the files are ordered in the same way
-treatment <- id$treatment #this is the first factor for the GLM model
+treatment <- id$treatment 
 population <- id$population
 
-#table <- data.frame(treatment)
 table <- data.frame(population)
 population <- factor(id$population)
 treatment <- factor(id$treatment)
 
 table <- cbind(table, treatment)
 table$treatment = as.factor(table$treatment)
-table$treatment <- relevel(factor(table$treatment), ref="Control")#set Lowlander as the reference 
 table$population <- relevel(factor(table$population), ref="Lowlander")
 design <- model.matrix(~population*treatment, data=table)
 colnames(design) <- c("(Intercept)","population","treatment","pop*treat") # change column names to be simpler
@@ -143,7 +141,7 @@ dev.off()
 # Choose a set of soft-thresholding powers
 powers = c(c(1:12), seq(from = 12, to=30, by=2))
 # Call the network topology analysis function
-sft = pickSoftThreshold(Expr, powerVector = powers, networkType = "unsigned", verbose = 0)
+sft = pickSoftThreshold(Expr, powerVector = powers, networkType = "signed", verbose = 0)
 # Plot the results:
 pdf(paste("results/lung/signed/lung_beta_unsigned_plot_n41_",run_date,".pdf",sep=""), h=7, w=7)
 par(mfrow = c(1,2));
@@ -226,9 +224,8 @@ nGenes = ncol(Expr);
 nSamples = nrow(Expr)
 # Recalculate MEs with color labels
 MEs0 = moduleEigengenes(Expr, moduleLabels)$eigengenes
-MEs = orderMEs(MEs0) #the rownames of this dataset are equal to Expr
+MEs = orderMEs(MEs0) 
 MEs1 <- MEs
-#match(rownames(Traits), rownames(Expr))
 moduleTraitCor = cor(MEs1, Traits, use = "p");
 moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples);
 corr.table <- as.data.frame(cbind(moduleTraitCor, moduleTraitPvalue))
@@ -255,13 +252,13 @@ geneInfo0 = data.frame(geneInfo0, geneModuleMembership,
 names(geneInfo0) = c(oldNames, paste("MM.", modNames, sep=""),
                      paste("p.MM.", modNames, sep=""))
 
-# Order the genes in the geneInfo variable first by module color, then by geneTraitSignificance
+# Order the genes in the geneInfo variable first by module number, then by geneTraitSignificance
 geneOrder = order(geneInfo0$moduleLabel);
 geneInfo = geneInfo0[geneOrder, ]
 
 write.csv(geneInfo, file=paste("results/lung/signed/pman.lung.norm_moduleExpression_signed_genes_",run_date,".csv",sep=""))
 
-#code to generate plot of module-trait relationships
+#module-trait relationship plot
 
 pdf(paste("results/lung/signed/pman_lung_module_trait_relationships_plot_",run_date,".pdf",sep=""), h=11, w=8.5)
 #sizeGrWindow(10,6)
@@ -369,17 +366,16 @@ dev.off()
 all_genes <- geneInfo["Gene"]
 
 # Run GO enrichment using gProfiler package
-for (num in c("39")){
+for (num in c("1","2","4","5","7","8","10","11","12","13","15","16","17","19","20","21","23","32","35","38","39")){
   genes <- geneInfo[geneInfo$moduleLabel==num,]["Gene"]
   genes_GO <- gost(as.vector(genes$Gene), organism = "pmbairdii",
                    ordered_query = F, significant = T, exclude_iea = F,
                    user_threshold=0.05,
-                   correction_method = "g_SCS",
+                   correction_method = "g_SCS", custom_bg = as.vector(all_genes$Gene), 
                    domain_scope = "annotated", numeric_ns = "",sources=c("GO","KEGG","REAC","TF","HP"))
-  write.csv(apply(genes_GO$result,2,as.character),file=paste("results/lung/signed/GO_analysis/",num,"_module_GO_",run_date,".csv",sep=""))
+  write.csv(apply(genes_GO$result,2,as.character),file=paste("results/lung/signed/GO_analysis/new_072324/",num,"_module_GO_",run_date,".csv",sep=""))
 }
-# module 27, 34, and 37 have no significant GO terms
-
+# module 3, 6, ,9 , 14, 18, 22, 24,  25, 26, 27, 29, 30, 31, 33, 34,  36, and 37 have no significant GO terms
 #==============================================================================
 # Is there a difference in Male vs Female lung_standardized weight?
 
