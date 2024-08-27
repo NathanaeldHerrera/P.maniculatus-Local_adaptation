@@ -43,16 +43,13 @@ id <- id[id$code!=c("AA4MEBF"),]
 dim(id)
 # Subsetcount data to remove outlier individuals
 counts <- subset(counts, select=-c(CC3MEBF,KNG2304G,AA4MEBF))
-#counts0 <- subset(counts0, select=-c(CC3MEBF,KNG2304G,AA4MEBF))
-#dim(counts0)
 dim(counts)
-#colnames(counts) == id$code # should see all "TRUE"s
 
 #==============================================================================
 #filter data for low gene counts
-counts$mean = rowMeans(counts) #rowMeans takes means of each row
-keep_counts = subset(counts, mean >= 20) #filter out genes that have <20 reads on average across individuals
-#dim(keep_counts)
+#filter out genes that have <20 reads on average across individuals
+counts$mean = rowMeans(counts)
+keep_counts = subset(counts, mean >= 20) 
 
 keep_counts$mean = NULL #clean up dataset
 dim(keep_counts)
@@ -70,7 +67,6 @@ treatment <- factor(id$treatment)
 
 table <- cbind(table, treatment)
 table$treatment = as.factor(table$treatment)
-table$treatment <- relevel(factor(table$treatment), ref="Control")#set Lowlander as the reference 
 table$population <- relevel(factor(table$population), ref="Lowlander")
 design <- model.matrix(~population*treatment, data=table)
 colnames(design) <- c("(Intercept)","population","treatment","pop*treat") # change column names to be simpler
@@ -370,18 +366,17 @@ dev.off()
 # GO enrichment WGCNA modules
 # output gene info
 all_genes <- geneInfo["Gene"]
-
 # Run GO enrichment using gProfiler package
-for (num in c("3","4","5","7","8","10","15","25","32","37")){
+for (num in c("1","2","5","6","7","9","10","11","12","13","14","17","20","21","25","26","27","29","30","31","34","37")){
   genes <- geneInfo[geneInfo$moduleLabel==num,]["Gene"]
   genes_GO <- gost(as.vector(genes$Gene), organism = "pmbairdii",
                    ordered_query = F, significant = T, exclude_iea = F,
                    user_threshold=0.05,
-                   correction_method = "g_SCS",
+                   correction_method = "g_SCS", custom_bg = as.vector(all_genes$Gene), 
                    domain_scope = "annotated", numeric_ns = "",sources=c("GO","KEGG","REAC","TF","HP"))
-  write.csv(apply(genes_GO$result,2,as.character),file=paste("results/rv/signed/GO_analysis/",num,"_module_GO_",run_date,".csv",sep=""))
+  write.csv(apply(genes_GO$result,2,as.character),file=paste("results/rv/signed/GO_analysis/new_072324/",num,"_module_GO_",run_date,".csv",sep=""))
 }
-# module 25 has no significant GO terms
+# module3,4,8,15,16,18,19,22,23,24,28,32,33,35,36 have no significant GO terms
 
 #==============================================================================
 # Is there a difference in Male vs Female rv_standardized weight?
