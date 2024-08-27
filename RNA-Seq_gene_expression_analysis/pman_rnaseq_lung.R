@@ -163,7 +163,7 @@ dev.off()
 
 #==============================================================================
 # Construct a gene network, using a soft threshold power of 8, based on inflection point in plot.
-Net = blockwiseModules(Expr, power =8, maxBlockSize = 18000, # set power according to threshold power plot
+Net = blockwiseModules(Expr, power =9, maxBlockSize = 18000, # set power according to threshold power plot
                        TOMType = "signed", networkType = "signed",
                        minModuleSize = 30,
                        reassignThreshold = 0, mergeCutHeight = 0.25,
